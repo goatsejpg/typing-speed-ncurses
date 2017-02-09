@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 	srand(time(NULL));
 
 	for (int i = 0; i < 100; ++i) {
-		in.open("words");
+		in.open("/usr/bin/typingspeedwords");
 		int tempi = rand() % 850;
 		for (int j = 0; j <= tempi; ++j) {
 			in >> temp;
