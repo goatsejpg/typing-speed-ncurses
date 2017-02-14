@@ -16,6 +16,7 @@ bool error = false;
 double tempc;
 
 std::ifstream in;
+std::ofstream read;
 std::string words[116];
 std::string wordsTypedMem[100];
 
@@ -35,6 +36,16 @@ int getCPM_WPM(const long& seconds) {
 }
 
 int main(int argc, char* argv[]) {
+
+	if (argc > 1) {
+		if (argv[1] == "-r") {
+			in.open("records");
+			in >> currWord;
+			std::cout << currWord << std::endl;
+			return 0;
+		}
+	}
+
 	std::string temp;
 
 	struct timespec start, endt;
@@ -190,13 +201,29 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	bool record = false;
+
 	cpm = std::max(0,(int)((charsCorrect / (double)seconds) * 60));
 	wpm = std::max(0,cpm / 5);
+
+	currWord = 0;
+	in.close();
+	in.open ("records");
+	in >> currWord; // reuse of currWord to save memory
+	if (currWord < cpm) {
+		read.open("records", std::ofstream::out | std::ofstream::trunc);
+		read << cpm;
+		read.close();
+		record = true;
+		currWord = cpm;
+	}
+	in.close();
+
 	refresh();
 	endwin();
 
 	std::cout << "\n100 words took " << seconds << " seconds"
-	<< "\nCharacters per minute: " << cpm 
+	<< "\nCharacters per minute: " << cpm << (record ? " NEW RECORD":"") 
 	<< "\nWords per minute: " << wpm << 
 	"\nWords Misspelt: " << errorCount << "/" << wordsTyped;
 	if (errorCount == 0) {
@@ -245,7 +272,8 @@ int main(int argc, char* argv[]) {
 		std::cout << "SS+" << std::endl;
 	}
 
-	std::cout << std::endl;
+	// currWord at this point is used to hold the record
+	std::cout << "Record: " << currWord <<" CPM (" <<cpm/5<<" WPM)"<< std::endl;
 	
 	return 0;
 }
