@@ -19,11 +19,26 @@ std::ifstream in;
 std::string words[116];
 std::string wordsTypedMem[100];
 
+int getCPM_WPM(const long& seconds) {
+	charsCorrect = charsTyped;
+	int errorC = 0;
+
+	for (int i = 0; i < wordsTyped; ++i) {
+		if (words[i] != wordsTypedMem[i]) {
+			charsCorrect -= (words[i].length());
+			++errorC;
+		}
+	}
+
+	cpm = std::max(0,(int)((charsCorrect / ((double)seconds) * 60)));
+	wpm = std::max(0,cpm / 5);
+}
+
 int main(int argc, char* argv[]) {
 	std::string temp;
 
 	struct timespec start, endt;
-	long seconds, nseconds;
+	long seconds = 0;
 	double mtime;
 
 	srand(time(NULL));
@@ -54,21 +69,25 @@ int main(int argc, char* argv[]) {
 	init_pair(3, COLOR_WHITE, COLOR_RED);
 	init_pair(4, COLOR_WHITE, COLOR_CYAN);
 	init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(6, COLOR_CYAN, COLOR_BLACK);
 	
+	int cc = 0;
 
-
-	while (true) {
+	while (currWord < 100) {
 		clear();
 		printw("\n");
 		error = false;
 		int divided = currWord / 8;
 		int moded   = currWord - (divided * 8);
 
+		printw("            %s\n",typed.c_str());
+
 		for (int i = 0; i < moded; ++i) {
 			if (wordsTypedMem[i+(divided*8)] != words[i+(divided*8)]) {
 				attron(COLOR_PAIR(3));
-				printw("%s ", words[i+(divided*8)].c_str());
+				printw("%s", words[i+(divided*8)].c_str());
 				attroff(COLOR_PAIR(3));
+				printw(" ");
 			} else {
 				printw("%s ", words[i+(divided*8)].c_str());
 			}
@@ -77,11 +96,11 @@ int main(int argc, char* argv[]) {
 			if (typed[f] != words[currWord][f]) {
 				attron(COLOR_PAIR(3));
 				error = true;
-				printw("%c",typed[f]);	
+				printw("%c",words[currWord][f]);	
 				attroff(COLOR_PAIR(3));
 			} else {
 				attron(COLOR_PAIR(2));
-				printw("%c",typed[f]);
+				printw("%c",words[currWord][f]);
 				attroff(COLOR_PAIR(2));
 			}
 		}
@@ -101,8 +120,9 @@ int main(int argc, char* argv[]) {
 		for (auto a = std::begin(words) + (divided*8) + 8; a != std::begin(words) + (divided*8) + 16; ++a) {
 			printw("%s ", a->c_str());
 		}
-
-		printw("\n\n%i words left", 100 - currWord);
+		attron(COLOR_PAIR(5));
+		printw("\n\n%i words left   %i CPM : %i WPM   %is", 100 - currWord, cpm, wpm, seconds);
+		attroff(COLOR_PAIR(5));
 		refresh();
 
 		if (not started) {
@@ -115,6 +135,7 @@ int main(int argc, char* argv[]) {
 			}
 		} else {
 			tempc = getch();
+			clock_gettime(CLOCK_MONOTONIC, &endt);
 			if (tempc == KEY_ENTER) {
 				return 0;
 			}
@@ -141,16 +162,17 @@ int main(int argc, char* argv[]) {
 					currChar = 0;
 					++currWord;
 					wordsTypedMem[currWord-1] = typed;
-					typed = "";
+					typed = "";	
+					getCPM_WPM(seconds);
 				} else {
 					++currChar;
 					++charsTyped;
 					typed += tempc;
-					beep();
 				}
 			}
+			seconds = endt.tv_sec - start.tv_sec;
 		}
-		
+
 		if (currWord == 100) {
 			break;	
 		}
@@ -158,7 +180,6 @@ int main(int argc, char* argv[]) {
 
 	clock_gettime(CLOCK_MONOTONIC, &endt);
 	seconds = endt.tv_sec - start.tv_sec;
-	nseconds = endt.tv_nsec - start.tv_nsec;
 
 	charsCorrect = charsTyped;
 
@@ -169,7 +190,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	cpm = std::max(0,(int)((charsCorrect / ((double)seconds) * 60)));
+	cpm = std::max(0,(int)((charsCorrect / (double)seconds) * 60));
 	wpm = std::max(0,cpm / 5);
 	refresh();
 	endwin();
