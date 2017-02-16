@@ -208,10 +208,10 @@ int main(int argc, char* argv[]) {
 
 	currWord = 0;
 	in.close();
-	in.open ("records");
+	in.open ("/usr/bin/tprecords");
 	in >> currWord; // reuse of currWord to save memory
 	if (currWord < cpm) {
-		read.open("records", std::ofstream::out | std::ofstream::trunc);
+		read.open("/usr/bin/tprecords", std::ofstream::out | std::ofstream::trunc);
 		read << cpm;
 		read.close();
 		record = true;
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// currWord at this point is used to hold the record
-	std::cout << "Record: " << currWord <<" CPM (" <<cpm/5<<" WPM)"<< std::endl;
+	std::cout << "Record: " << currWord <<" CPM (" <<currWord/5<<" WPM)"<< std::endl;
 	
 	return 0;
 }
